@@ -1,12 +1,14 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import plotly.graph_objects as go
 
 # =====================================================
 # PAGE CONFIG
 # =====================================================
 st.set_page_config(
     page_title="Acute Malnutrition Risk Prediction",
+    page_icon="🌍",
     layout="wide"
 )
 
@@ -25,11 +27,29 @@ model = load_model()
 threshold = load_threshold()
 
 # =====================================================
+# SIDEBAR
+# =====================================================
+st.sidebar.title("About This Tool")
+st.sidebar.markdown("""
+**Model:** Random Forest  
+**Feature Selection:** Consensus (≥2 methods)  
+**Threshold Optimization:** Youden Index  
+
+Developed for screening of acute malnutrition risk among  
+children under five in Sub-Saharan Africa.
+""")
+
+st.sidebar.markdown("---")
+st.sidebar.info("For research and public health screening use only.")
+
+# =====================================================
 # HEADER
 # =====================================================
-st.title("🌍 Acute Malnutrition Risk Prediction Tool")
-st.markdown("### Random Forest Machine Learning Model")
-st.markdown("Predicting Acute Malnutrition in Sub-Saharan Africa")
+st.title("🌍 Acute Malnutrition Risk Prediction")
+st.markdown("""
+This tool predicts the probability of **acute malnutrition (wasting)**  
+using a trained Random Forest machine learning model.
+""")
 st.markdown("---")
 
 # =====================================================
@@ -37,11 +57,9 @@ st.markdown("---")
 # =====================================================
 with st.form("prediction_form"):
 
+    st.markdown("### 👩 Maternal & Household Characteristics")
     col1, col2, col3 = st.columns(3)
 
-    # -----------------------
-    # COLUMN 1
-    # -----------------------
     with col1:
         matage = st.selectbox("Maternal Age",
             ['15-19','20-24','25-29','30-34','35-39','40-44','45-49'])
@@ -60,9 +78,7 @@ with st.form("prediction_form"):
         bottlefeeding = st.selectbox("Bottle Feeding",
             ['no','yes'])
 
-    # -----------------------
-    # COLUMN 2
-    # -----------------------
+    st.markdown("### 👶 Child Characteristics")
     with col2:
         disposalofchild = st.selectbox("Child Stool Disposal",
             ['appropraite','inappropraite'])
@@ -81,9 +97,7 @@ with st.form("prediction_form"):
         breastfed = st.selectbox("Breastfeeding Status",
             ['never breastfed','ever breastfed, not currently breastfee',' still breastfeeding'])
 
-    # -----------------------
-    # COLUMN 3
-    # -----------------------
+    st.markdown("### 🏥 Health & Nutrition Factors")
     with col3:
         anc = st.selectbox("Antenatal Care",
             ['adequate','inadequate','not at all'])
@@ -107,13 +121,13 @@ with st.form("prediction_form"):
             ['brundi','comoros','ethiopia','kenya','madagascar','malawi',
              'mozambique','rwanda','tanzania','uganda','zambia','zimbabwe'])
 
-    submitted = st.form_submit_button("Predict Risk")
+    submitted = st.form_submit_button("🔍 Predict Risk")
 
 # =====================================================
-# PREDICTION
+# PREDICTION SECTION
 # =====================================================
 if submitted:
-    # Create a DataFrame with raw categorical strings
+
     input_df = pd.DataFrame([{
         'matage': matage,
         'placeresid': placeresid,
@@ -145,30 +159,55 @@ if submitted:
 
     try:
         probability = model.predict_proba(input_df)[0][1]
+
         st.markdown("---")
-        st.subheader(f"Predicted Probability of Acute Malnutrition: {probability:.3f}")
+        st.subheader("📊 Prediction Result")
 
-        if probability >= threshold:
-            st.error("⚠️ High Risk of Acute Malnutrition")
-        else:
-            st.success("✅ Low Risk of Acute Malnutrition")
+        colA, colB = st.columns(2)
 
-        st.info(f"Decision Threshold (Youden Index): {threshold:.3f}")
+        # Probability Metric
+        with colA:
+            st.metric(
+                label="Predicted Probability",
+                value=f"{probability*100:.1f} %"
+            )
+
+            st.write(f"Decision Threshold (Youden Index): {threshold:.3f}")
+
+            if probability >= threshold:
+                st.error("⚠️ High Risk of Acute Malnutrition")
+            else:
+                st.success("✅ Low Risk of Acute Malnutrition")
+
+        # Gauge Chart
+        with colB:
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=probability * 100,
+                title={'text': "Risk Probability (%)"},
+                gauge={
+                    'axis': {'range': [0, 100]},
+                    'bar': {'color': "darkred"},
+                    'steps': [
+                        {'range': [0, threshold*100], 'color': "lightgreen"},
+                        {'range': [threshold*100, 100], 'color': "salmon"}
+                    ]
+                }
+            ))
+
+            st.plotly_chart(fig, use_container_width=True)
+
     except Exception as e:
         st.error(f"Prediction failed: {e}")
 
 # =====================================================
-# MODEL PERFORMANCE PANEL
+# MODEL PERFORMANCE
 # =====================================================
 st.markdown("---")
-st.markdown("### Model Performance")
+st.markdown("### 📈 Model Information")
 st.write("Random Forest Classifier")
 st.write("Feature Selection: Consensus (≥2 methods)")
 st.write("Threshold Optimization: Youden Index")
-# Optional metrics (replace with your real ones)
-# st.write("ROC-AUC: 0.91")
-# st.write("Sensitivity: 0.85")
-# st.write("Specificity: 0.83")
 
 # =====================================================
 # DISCLAIMER
