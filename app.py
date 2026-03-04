@@ -29,25 +29,22 @@ threshold = load_threshold()
 # =====================================================
 # SIDEBAR
 # =====================================================
-st.sidebar.title("About This Tool")
+st.sidebar.title("Model Overview")
 st.sidebar.markdown("""
-**Model:** Random Forest  
+**Algorithm:** Random Forest  
 **Feature Selection:** Consensus (≥2 methods)  
-**Threshold Optimization:** Youden Index  
+**Threshold Selection:** Youden Index  
 
-Developed for screening of acute malnutrition risk among  
-children under five in Sub-Saharan Africa.
+Predicting acute malnutrition among children under five  
+in Sub-Saharan Africa.
 """)
-
-st.sidebar.markdown("---")
-st.sidebar.info("For research and public health screening use only.")
 
 # =====================================================
 # HEADER
 # =====================================================
 st.title("🌍 Acute Malnutrition Risk Prediction")
 st.markdown("""
-This tool predicts the probability of **acute malnutrition (wasting)**  
+This tool estimates the probability of **acute malnutrition (wasting)**  
 using a trained Random Forest machine learning model.
 """)
 st.markdown("---")
@@ -57,66 +54,85 @@ st.markdown("---")
 # =====================================================
 with st.form("prediction_form"):
 
-    st.markdown("### 👩 Maternal & Household Characteristics")
-    col1, col2, col3 = st.columns(3)
+    # ==============================
+    # MATERNAL CHARACTERISTICS
+    # ==============================
+    st.markdown("## 👩 Maternal Characteristics")
+    col1, col2 = st.columns(2)
 
     with col1:
         matage = st.selectbox("Maternal Age",
             ['15-19','20-24','25-29','30-34','35-39','40-44','45-49'])
+        litracy = st.selectbox("Maternal Literacy",
+            [' cannot read at all','able to read only parts of sentence','able to read whole sentence'])
+        maritalstatus = st.selectbox("Marital Status",
+            ['unmarried/widowed/divorced','married'])
+        working = st.selectbox("Mother Working",
+            ['no','yes'])
+
+    with col2:
+        anc = st.selectbox("Antenatal Care",
+            ['adequate','inadequate','not at all'])
+        maternaldecision = st.selectbox("Maternal Decision Power",
+            ['no','yes'])
+        birthinterval = st.selectbox("Birth Interval",
+            ['less than 2 years','2 years','3 years','4 years and above'])
+
+    # ==============================
+    # CHILD CHARACTERISTICS
+    # ==============================
+    st.markdown("## 👶 Child Characteristics")
+    col3, col4 = st.columns(2)
+
+    with col3:
+        childgender = st.selectbox("Child Gender",
+            ['male','female'])
+        childage = st.selectbox("Child Age",
+            ['0-11 months','12-23 months','24-35 months','36-47 months','48-59 months'])
+        twin = st.selectbox("Birth Type",
+            ['sinltone','multiple'])
+        birthsize = st.selectbox("Birth Size",
+            ['very large','larger than average','average','smaller than average','very small'])
+
+    with col4:
+        diarrhea = st.selectbox("Recent Diarrhea",
+            ['no','yes'])
+        fever = st.selectbox("Recent Fever",
+            ['no','yes'])
+        ari = st.selectbox("Acute Respiratory Infection",
+            ['no','yes'])
+        breastfed = st.selectbox("Breastfeeding Status",
+            ['never breastfed','ever breastfed, not currently breastfee',' still breastfeeding'])
+        bottlefeeding = st.selectbox("Bottle Feeding",
+            ['no','yes'])
+        vitamina = st.selectbox("Vitamin A Supplement",
+            ['no','yes'])
+        dietdivers = st.selectbox("Diet Diversity",
+            ['adequate','inadequate'])
+
+    # ==============================
+    # HOUSEHOLD CHARACTERISTICS
+    # ==============================
+    st.markdown("## 🏠 Household Characteristics")
+    col5, col6 = st.columns(2)
+
+    with col5:
         placeresid = st.selectbox("Place of Residence",
             ['urban','rural'])
-        latrine = st.selectbox("Latrine Available",
-            ['no','yes'])
         famsize = st.selectbox("Family Size",
             ['1-5','6 and more'])
         num5child = st.selectbox("Under-5 Children",
             ['less than 2','3 and more'])
         sexofhead = st.selectbox("Sex of Household Head",
             ['male','female'])
-        litracy = st.selectbox("Maternal Literacy",
-            [' cannot read at all','able to read only parts of sentence','able to read whole sentence'])
-        bottlefeeding = st.selectbox("Bottle Feeding",
-            ['no','yes'])
 
-    st.markdown("### 👶 Child Characteristics")
-    with col2:
+    with col6:
+        latrine = st.selectbox("Latrine Available",
+            ['no','yes'])
         disposalofchild = st.selectbox("Child Stool Disposal",
             ['appropraite','inappropraite'])
-        maritalstatus = st.selectbox("Marital Status",
-            ['unmarried/widowed/divorced','married'])
-        working = st.selectbox("Mother Working",
-            ['no','yes'])
-        twin = st.selectbox("Birth Type",
-            ['sinltone','multiple'])
-        childgender = st.selectbox("Child Gender",
-            ['male','female'])
-        childage = st.selectbox("Child Age",
-            ['0-11 months','12-23 months','24-35 months','36-47 months','48-59 months'])
-        birthinterval = st.selectbox("Birth Interval",
-            ['less than 2 years','2 years','3 years','4 years and above'])
-        breastfed = st.selectbox("Breastfeeding Status",
-            ['never breastfed','ever breastfed, not currently breastfee',' still breastfeeding'])
-
-    st.markdown("### 🏥 Health & Nutrition Factors")
-    with col3:
-        anc = st.selectbox("Antenatal Care",
-            ['adequate','inadequate','not at all'])
-        birthsize = st.selectbox("Birth Size",
-            ['very large','larger than average','average','smaller than average','very small'])
-        diarrhea = st.selectbox("Recent Diarrhea",
-            ['no','yes'])
-        fever = st.selectbox("Recent Fever",
-            ['no','yes'])
-        vitamina = st.selectbox("Vitamin A Supplement",
-            ['no','yes'])
-        maternaldecision = st.selectbox("Maternal Decision Power",
-            ['no','yes'])
-        dietdivers = st.selectbox("Diet Diversity",
-            ['adequate','inadequate'])
         watersource = st.selectbox("Water Source",
             ['unimproved','improved'])
-        ari = st.selectbox("Acute Respiratory Infection",
-            ['no','yes'])
         country = st.selectbox("Country",
             ['brundi','comoros','ethiopia','kenya','madagascar','malawi',
              'mozambique','rwanda','tanzania','uganda','zambia','zimbabwe'])
@@ -165,21 +181,17 @@ if submitted:
 
         colA, colB = st.columns(2)
 
-        # Probability Metric
         with colA:
             st.metric(
                 label="Predicted Probability",
                 value=f"{probability*100:.1f} %"
             )
 
-            st.write(f"Decision Threshold (Youden Index): {threshold:.3f}")
-
             if probability >= threshold:
                 st.error("⚠️ High Risk of Acute Malnutrition")
             else:
                 st.success("✅ Low Risk of Acute Malnutrition")
 
-        # Gauge Chart
         with colB:
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
@@ -204,16 +216,13 @@ if submitted:
 # MODEL PERFORMANCE
 # =====================================================
 st.markdown("---")
-st.markdown("### 📈 Model Information")
-st.write("Random Forest Classifier")
-st.write("Feature Selection: Consensus (≥2 methods)")
-st.write("Threshold Optimization: Youden Index")
+st.markdown("## 📈 Model Performance")
 
-# =====================================================
-# DISCLAIMER
-# =====================================================
-st.markdown("---")
-st.caption(
-    "This tool is developed for research and screening purposes. "
-    "It does not replace clinical judgment or formal nutritional assessment."
-)
+st.write("""
+- **Area Under the Curve (AUC):** 74.6% (95% CI: 73.0–76.2)  
+- **Accuracy:** 71.2%  
+- **Precision:** 13.1%  
+- **Recall (Sensitivity):** 66.2%  
+- **Specificity:** 71.5%  
+- **F1-Score:** 0.218  
+""")
