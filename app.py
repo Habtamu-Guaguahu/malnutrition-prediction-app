@@ -36,7 +36,7 @@ st.sidebar.markdown("""
 **Threshold Selection:** Youden Index  
 
 Predicting acute malnutrition among children under five  
-in Sub-Saharan Africa.
+in East Africa.
 """)
 
 # =====================================================
